@@ -77,22 +77,22 @@ static UINT8 diag_input_select_l_r[] =  {RETRO_DEVICE_ID_JOYPAD_SELECT, RETRO_DE
 
 // Global core options
 static const struct retro_variable var_empty = { NULL, NULL };
-static const struct retro_variable var_fbneo_allow_depth_32 = { "fbneo-allow-depth-32", "Use 32-bits color depth when available; disabled|enabled" };
-static const struct retro_variable var_fbneo_vertical_mode = { "fbneo-vertical-mode", "Vertical mode; disabled|enabled" };
-static const struct retro_variable var_fbneo_frameskip = { "fbneo-frameskip", "Frameskip; 0|1|2|3|4|5" };
-static const struct retro_variable var_fbneo_cpu_speed_adjust = { "fbneo-cpu-speed-adjust", "CPU overclock; 100|110|120|130|140|150|160|170|180|190|200" };
-static const struct retro_variable var_fbneo_diagnostic_input = { "fbneo-diagnostic-input", "Diagnostic Input; None|Hold Start|Start + A + B|Hold Start + A + B|Start + L + R|Hold Start + L + R|Hold Select|Select + A + B|Hold Select + A + B|Select + L + R|Hold Select + L + R" };
-static const struct retro_variable var_fbneo_hiscores = { "fbneo-hiscores", "Hiscores; enabled|disabled" };
-static const struct retro_variable var_fbneo_samplerate = { "fbneo-samplerate", "Samplerate (need to quit retroarch); 48000|44100|22050|11025" };
-static const struct retro_variable var_fbneo_sample_interpolation = { "fbneo-sample-interpolation", "Sample Interpolation; 4-point 3rd order|2-point 1st order|disabled" };
-static const struct retro_variable var_fbneo_fm_interpolation = { "fbneo-fm-interpolation", "FM Interpolation; 4-point 3rd order|disabled" };
-static const struct retro_variable var_fbneo_analog_speed = { "fbneo-analog-speed", "Analog Speed; 10|9|8|7|6|5|4|3|2|1" };
+static const struct retro_variable var_fbneo_allow_depth_32 = { "fbneo-allow-depth-32", "尽可能使用32位色彩深度; 禁用|启用" };
+static const struct retro_variable var_fbneo_vertical_mode = { "fbneo-vertical-mode", "竖屏模式; 禁用|启用" };
+static const struct retro_variable var_fbneo_frameskip = { "fbneo-frameskip", "跳帧; 0|1|2|3|4|5" };
+static const struct retro_variable var_fbneo_cpu_speed_adjust = { "fbneo-cpu-speed-adjust", "CPU 频率; 100|110|120|130|140|150|160|170|180|190|200" };
+static const struct retro_variable var_fbneo_diagnostic_input = { "fbneo-diagnostic-input", "诊断输入; 无|按住 Start|Start + A + B|按住 Start + A + B|Start + L + R|按住 Start + L + R|按住 Select|Select + A + B|按住 Select + A + B|Select + L + R|按住 Select + L + R" };
+static const struct retro_variable var_fbneo_hiscores = { "fbneo-hiscores", "Hiscores; 启用|禁用" };
+static const struct retro_variable var_fbneo_samplerate = { "fbneo-samplerate", "音频采样率（需要重启Reroarch); 48000|44100|22050|11025" };
+static const struct retro_variable var_fbneo_sample_interpolation = { "fbneo-sample-interpolation", "音频采样插值; 4-point 3rd order|2-point 1st order|禁用" };
+static const struct retro_variable var_fbneo_fm_interpolation = { "fbneo-fm-interpolation", "FM音源插值; 4-point 3rd order|禁用" };
+static const struct retro_variable var_fbneo_analog_speed = { "fbneo-analog-speed", "模拟摇杆速度; 10|9|8|7|6|5|4|3|2|1" };
 #ifdef USE_CYCLONE
-static const struct retro_variable var_fbneo_cyclone = { "fbneo-cyclone", "Cyclone (need to quit retroarch, change savestate format, use at your own risk); disabled|enabled" };
+static const struct retro_variable var_fbneo_cyclone = { "fbneo-cyclone", "启用Cyclone（需要重启Retroarch，会改变存档格式，使用风险自负）; 禁用|启用" };
 #endif
 
 // Neo Geo core options
-static const struct retro_variable var_fbneo_neogeo_mode = { "fbneo-neogeo-mode", "Force Neo Geo mode (if available); MVS|AES|UNIBIOS|DIPSWITCH" };
+static const struct retro_variable var_fbneo_neogeo_mode = { "fbneo-neogeo-mode", "强制Neo Geo模式（如果可用）; MVS|AES|UNIBIOS|DIP开关" };
 
 // Replace the char c_find by the char c_replace in the destination c string
 char* str_char_replace(char* destination, char c_find, char c_replace)
@@ -111,7 +111,7 @@ void set_neo_system_bios()
 	if (g_opt_neo_geo_mode == NEO_GEO_MODE_DIPSWITCH)
 	{
 		// Nothing to do in DIPSWITCH mode because the NeoSystem variable is changed by the DIP Switch core option
-		log_cb(RETRO_LOG_INFO, "DIPSWITCH Neo Geo Mode selected => NeoSystem: 0x%02x.\n", NeoSystem);
+		log_cb(RETRO_LOG_INFO, "已根据DIP开关选择Neo Geo模式 => NeoSystem: 0x%02x.\n", NeoSystem);
 	}
 	else if (g_opt_neo_geo_mode == NEO_GEO_MODE_MVS)
 	{
@@ -119,7 +119,7 @@ void set_neo_system_bios()
 		if (available_mvs_bios)
 		{
 			NeoSystem |= available_mvs_bios->NeoSystem;
-			log_cb(RETRO_LOG_INFO, "MVS Neo Geo Mode selected => Set NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_mvs_bios->filename, available_mvs_bios->crc, available_mvs_bios->friendly_name);
+			log_cb(RETRO_LOG_INFO, "已选择MVS Neo Geo模式 => 设置 NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_mvs_bios->filename, available_mvs_bios->crc, available_mvs_bios->friendly_name);
 		}
 		else
 		{
@@ -128,7 +128,7 @@ void set_neo_system_bios()
 			if (available_mvs_bios)
 			{
 				NeoSystem |= available_mvs_bios->NeoSystem;
-				log_cb(RETRO_LOG_WARN, "MVS Neo Geo Mode selected but MVS bios not available => fall back to another: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_mvs_bios->filename, available_mvs_bios->crc, available_mvs_bios->friendly_name);
+				log_cb(RETRO_LOG_WARN, "已选择MVS Neo Geo模式，但是没有有效的MVS bios文件 => 使用备选: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_mvs_bios->filename, available_mvs_bios->crc, available_mvs_bios->friendly_name);
 			}
 		}
 	}
@@ -138,7 +138,7 @@ void set_neo_system_bios()
 		if (available_aes_bios)
 		{
 			NeoSystem |= available_aes_bios->NeoSystem;
-			log_cb(RETRO_LOG_INFO, "AES Neo Geo Mode selected => Set NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_aes_bios->filename, available_aes_bios->crc, available_aes_bios->friendly_name);
+			log_cb(RETRO_LOG_INFO, "已选择AES Neo Geo模式 => 设置 NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_aes_bios->filename, available_aes_bios->crc, available_aes_bios->friendly_name);
 		}
 		else
 		{
@@ -147,7 +147,7 @@ void set_neo_system_bios()
 			if (available_aes_bios)
 			{
 				NeoSystem |= available_aes_bios->NeoSystem;
-				log_cb(RETRO_LOG_WARN, "AES Neo Geo Mode selected but AES bios not available => fall back to another: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_aes_bios->filename, available_aes_bios->crc, available_aes_bios->friendly_name);
+				log_cb(RETRO_LOG_WARN, "已选择AES Neo Geo模式，但是没有有效的AES bios文件 => 使用备选: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_aes_bios->filename, available_aes_bios->crc, available_aes_bios->friendly_name);
 			}
 		}
 	}
@@ -157,7 +157,7 @@ void set_neo_system_bios()
 		if (available_uni_bios)
 		{
 			NeoSystem |= available_uni_bios->NeoSystem;
-			log_cb(RETRO_LOG_INFO, "UNIBIOS Neo Geo Mode selected => Set NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_uni_bios->filename, available_uni_bios->crc, available_uni_bios->friendly_name);
+			log_cb(RETRO_LOG_INFO, "已选择UNIBIOS Neo Geo模式 => 设置 NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_uni_bios->filename, available_uni_bios->crc, available_uni_bios->friendly_name);
 		}
 		else
 		{
@@ -166,7 +166,7 @@ void set_neo_system_bios()
 			if (available_uni_bios)
 			{
 				NeoSystem |= available_uni_bios->NeoSystem;
-				log_cb(RETRO_LOG_WARN, "UNIBIOS Neo Geo Mode selected but UNIBIOS not available => fall back to another: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_uni_bios->filename, available_uni_bios->crc, available_uni_bios->friendly_name);
+				log_cb(RETRO_LOG_WARN, "UNIBIOS Neo Geo模式已选择，但是没有有效的UNIBIOS文件 => 使用备选: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_uni_bios->filename, available_uni_bios->crc, available_uni_bios->friendly_name);
 			}
 		}
 	}
@@ -256,7 +256,7 @@ void set_environment()
 	int nbr_dips = dipswitch_core_options.size();
 
 #if 0
-	log_cb(RETRO_LOG_INFO, "set_environment: SYSTEM: %d, DIPSWITCH: %d\n", nbr_vars, nbr_dips);
+	log_cb(RETRO_LOG_INFO, "set_environment: SYSTEM: %d, DIP开关: %d\n", nbr_vars, nbr_dips);
 #endif
 
 	vars = (struct retro_variable*)calloc(nbr_vars + nbr_dips + 1, sizeof(struct retro_variable));
@@ -281,7 +281,7 @@ void set_environment()
 			vars[idx_var].key = dipswitch_core_options[dip_idx].option_name;
 			vars[idx_var].value = dipswitch_core_options[dip_idx].values_str.c_str();
 #if 0
-			log_cb(RETRO_LOG_INFO, "retro_variable (DIPSWITCH) { '%s', '%s' }\n", vars[idx_var].key, vars[idx_var].value);
+			log_cb(RETRO_LOG_INFO, "retro_variable (DIP开关) { '%s', '%s' }\n", vars[idx_var].key, vars[idx_var].value);
 #endif
 			idx_var++;
 		}
@@ -337,7 +337,7 @@ void check_variables(void)
 	var.key = var_fbneo_allow_depth_32.key;
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
 	{
-		if (strcmp(var.value, "enabled") == 0)
+		if (strcmp(var.value, "启用") == 0)
 			bAllowDepth32 = true;
 		else
 			bAllowDepth32 = false;
@@ -346,7 +346,7 @@ void check_variables(void)
 	var.key = var_fbneo_vertical_mode.key;
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
 	{
-		if (strcmp(var.value, "enabled") == 0)
+		if (strcmp(var.value, "启用") == 0)
 			bVerticalMode = true;
 		else
 			bVerticalMode = false;
@@ -376,7 +376,7 @@ void check_variables(void)
 		{
 			diag_input = NULL;
 			SetDiagInpHoldFrameDelay(0);
-			if (strcmp(var.value, "Hold Start") == 0)
+			if (strcmp(var.value, "按住 Start") == 0)
 			{
 				diag_input = diag_input_start;
 				SetDiagInpHoldFrameDelay(60);
@@ -386,7 +386,7 @@ void check_variables(void)
 				diag_input = diag_input_start_a_b;
 				SetDiagInpHoldFrameDelay(0);
 			}
-			else if(strcmp(var.value, "Hold Start + A + B") == 0)
+			else if(strcmp(var.value, "按住 Start + A + B") == 0)
 			{
 				diag_input = diag_input_start_a_b;
 				SetDiagInpHoldFrameDelay(60);
@@ -396,12 +396,12 @@ void check_variables(void)
 				diag_input = diag_input_start_l_r;
 				SetDiagInpHoldFrameDelay(0);
 			}
-			else if(strcmp(var.value, "Hold Start + L + R") == 0)
+			else if(strcmp(var.value, "按住 Start + L + R") == 0)
 			{
 				diag_input = diag_input_start_l_r;
 				SetDiagInpHoldFrameDelay(60);
 			}
-			else if(strcmp(var.value, "Hold Select") == 0)
+			else if(strcmp(var.value, "按住 Select") == 0)
 			{
 				diag_input = diag_input_select;
 				SetDiagInpHoldFrameDelay(60);
@@ -411,7 +411,7 @@ void check_variables(void)
 				diag_input = diag_input_select_a_b;
 				SetDiagInpHoldFrameDelay(0);
 			}
-			else if(strcmp(var.value, "Hold Select + A + B") == 0)
+			else if(strcmp(var.value, "按住 Select + A + B") == 0)
 			{
 				diag_input = diag_input_select_a_b;
 				SetDiagInpHoldFrameDelay(60);
@@ -421,7 +421,7 @@ void check_variables(void)
 				diag_input = diag_input_select_l_r;
 				SetDiagInpHoldFrameDelay(0);
 			}
-			else if(strcmp(var.value, "Hold Select + L + R") == 0)
+			else if(strcmp(var.value, "按住 Select + L + R") == 0)
 			{
 				diag_input = diag_input_select_l_r;
 				SetDiagInpHoldFrameDelay(60);
@@ -442,7 +442,7 @@ void check_variables(void)
 					g_opt_neo_geo_mode = NEO_GEO_MODE_AES;
 				else if (strcmp(var.value, "UNIBIOS") == 0)
 					g_opt_neo_geo_mode = NEO_GEO_MODE_UNIBIOS;
-				else if (strcmp(var.value, "DIPSWITCH") == 0)
+				else if (strcmp(var.value, "DIP开关") == 0)
 					g_opt_neo_geo_mode = NEO_GEO_MODE_DIPSWITCH;
 			}
 		}
@@ -451,7 +451,7 @@ void check_variables(void)
 	var.key = var_fbneo_hiscores.key;
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
 	{
-		if (strcmp(var.value, "enabled") == 0)
+		if (strcmp(var.value, "启用") == 0)
 			EnableHiscores = true;
 		else
 			EnableHiscores = false;
@@ -487,7 +487,7 @@ void check_variables(void)
 			nInterpolation = 3;
 		else if (strcmp(var.value, "2-point 1st order") == 0)
 			nInterpolation = 1;
-		else if (strcmp(var.value, "disabled") == 0)
+		else if (strcmp(var.value, "禁用") == 0)
 			nInterpolation = 0;
 		else
 			nInterpolation = 3;
@@ -498,7 +498,7 @@ void check_variables(void)
 	{
 		if (strcmp(var.value, "4-point 3rd order") == 0)
 			nFMInterpolation = 3;
-		else if (strcmp(var.value, "disabled") == 0)
+		else if (strcmp(var.value, "禁用") == 0)
 			nFMInterpolation = 0;
 		else
 			nFMInterpolation = 3;
@@ -535,9 +535,9 @@ void check_variables(void)
 	var.key = var_fbneo_cyclone.key;
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
 	{
-		if (strcmp(var.value, "enabled") == 0)
+		if (strcmp(var.value, "启用") == 0)
 			bCycloneEnabled = true;
-		else if (strcmp(var.value, "disabled") == 0)
+		else if (strcmp(var.value, "禁用") == 0)
 			bCycloneEnabled = false;
 	}
 #endif
