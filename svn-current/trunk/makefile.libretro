@@ -104,18 +104,31 @@ else ifeq ($(platform), osx)
    endif
    OSXVER = `sw_vers -productVersion | cut -d. -f 2`
    OSX_LT_MAVERICKS = `(( $(OSXVER) <= 9)) && echo "YES"`
+   OSX_GT_MOJAVE = $(shell (( $(OSXVER) >= 14)) && echo "YES")
+ifeq ($(OSX_GT_MOJAVE),YES)
+   fpic += -stdlib=libc++
+else
    fpic += -mmacosx-version-min=10.1
-   ifndef ($(NOUNIVERSAL))
-      CFLAGS += $(ARCHFLAGS)
-      CXXFLAGS += $(ARCHFLAGS)
-      LDFLAGS += $(ARCHFLAGS)
+endif
+
+   ifeq ($(CROSS_COMPILE),1)
+		TARGET_RULE   = -target $(LIBRETRO_APPLE_PLATFORM) -isysroot $(LIBRETRO_APPLE_ISYSROOT)
+		CFLAGS   += $(TARGET_RULE)
+		CPPFLAGS += $(TARGET_RULE)
+		CXXFLAGS += $(TARGET_RULE)
+		LDFLAGS  += $(TARGET_RULE)
    endif
+
+   CFLAGS += $(ARCHFLAGS)
+   CXXFLAGS += $(ARCHFLAGS)
+   LDFLAGS += $(ARCHFLAGS)
 
 # iOS
 else ifneq (,$(findstring ios,$(platform)))
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
    fpic := -fPIC
    SHARED := -dynamiclib
+   MINVERSION :=
 
    ifeq ($(IOSSDK),)
       IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
@@ -129,14 +142,11 @@ else ifneq (,$(findstring ios,$(platform)))
    endif
    CFLAGS += -DIOS
    ifeq ($(platform),$(filter $(platform),ios9 ios-arm64))
-      CC += -miphoneos-version-min=8.0
-      CXX +=  -miphoneos-version-min=8.0
-      CFLAGS += -miphoneos-version-min=8.0
+      MINVERSION = -miphoneos-version-min=8.0
    else
-      CC += -miphoneos-version-min=5.0
-      CXX +=  -miphoneos-version-min=5.0
-      CFLAGS += -miphoneos-version-min=5.0
+      MINVERSION = -miphoneos-version-min=5.0
    endif
+   CFLAGS += $(MINVERSION)
 
 else ifeq ($(platform), tvos-arm64)
    TARGET := $(TARGET_NAME)_libretro_tvos.dylib
@@ -147,6 +157,8 @@ else ifeq ($(platform), tvos-arm64)
       IOSSDK := $(shell xcodebuild -version -sdk appletvos Path)
    endif
    CFLAGS += -DIOS
+   CC = cc -arch arm64 -isysroot $(IOSSDK)
+   CXX = c++ -arch arm64 -isysroot $(IOSSDK)   
 
 # Theos iOS
 else ifeq ($(platform), theos_ios)
@@ -170,28 +182,15 @@ else ifeq ($(platform), qnx)
    PLATFORM_DEFINES := -D__BLACKBERRY_QNX__ -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp
 
 # PS3
-else ifneq (,$(filter $(platform), ps3 sncps3 psl1ght))
+else ifneq (,$(filter $(platform), psl1ght))
    TARGET := $(TARGET_NAME)_libretro_ps3.a
    ENDIANNESS_DEFINES =  -DWORDS_BIGENDIAN -DMSB_FIRST
-   PLATFORM_DEFINES += -D__CELLOS_LV2__
+   PLATFORM_DEFINES += -D__PSL1GHT__
    EXTERNAL_ZLIB = 1
    STATIC_LINKING = 1
 
-   # sncps3
-   ifneq (,$(findstring sncps3,$(platform)))
-      PLATFORM_DEFINES += -DSN_TARGET_PS3
-      CXX = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
-      CC = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
-      AR = $(CELL_SDK)/host-win32/sn/bin/ps3snarl.exe
-
-   # PS3
-   else ifneq (,$(findstring ps3,$(platform)))
-      CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
-      CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
-      AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
-      
    # Lightweight PS3 Homebrew SDK
-   else ifneq (,$(findstring psl1ght,$(platform)))
+   ifneq (,$(findstring psl1ght,$(platform)))
       TARGET := $(TARGET_NAME)_libretro_$(platform).a
       CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
       CXX = $(PS3DEV)/ppu/bin/ppu-g++$(EXE_EXT)
